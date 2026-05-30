@@ -103,10 +103,12 @@ projectsRouter.post(
         data: { current_version_index: version.id },
       });
 
-      await tx.user.update({
-        where: { id: userId },
-        data: { totalCreation: { increment: 1 }, credits: { decrement: 1 } },
+      const creditCost = 5;
+      const updatedUser = await tx.user.updateMany({
+        where: { id: userId, credits: { gte: creditCost } },
+        data: { totalCreation: { increment: 1 }, credits: { decrement: creditCost } },
       });
+      if (updatedUser.count !== 1) throw new HttpError(402, 'Insufficient credits', 'INSUFFICIENT_CREDITS');
 
       return tx.websiteProject.findUniqueOrThrow({
         where: { id: created.id },
