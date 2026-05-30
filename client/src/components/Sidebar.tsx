@@ -2,6 +2,8 @@ import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react'
 import type { Message, Project, Version } from '../types';
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { projectsApi } from '../lib/api';
+import { toast } from 'sonner';
 
 interface SidebarProps {
     isMenuOpen: boolean;
@@ -16,17 +18,30 @@ const Sidebar = ({isMenuOpen, project, setProject, isGenerating, setIsGenerating
     
     const [input , setInput] = useState('');
     
-    const handleRollBack = (versionId: string) => {
-
+    const handleRollBack = async (versionId: string) => {
+        try {
+            const { project: updated } = await projectsApi.restoreVersion(project.id, versionId);
+            setProject(updated);
+            toast.success('Version restored');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unable to restore version');
+        }
     }
 
-    const handleRevisions = (e: React.FormEvent) => {
+    const handleRevisions = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
         setIsGenerating(true);
-        setTimeout(() => {
+        try {
+            const { project: updated } = await projectsApi.generate(project.id, input);
+            setProject(updated);
+            setInput('');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unable to update website');
+        } finally {
             setIsGenerating(false);
-        }, 3000)};
+        }
+    };
 
 
 
@@ -54,9 +69,6 @@ const Sidebar = ({isMenuOpen, project, setProject, isGenerating, setIsGenerating
                                         <BotIcon className='size-5 text-white'/>
                                     </div>
                                 )}
-                                <div className={ `max-w-[80%] p-2 px-4 rounded-2xl shadow-sm text-sm mt-5 leading-relaxed ${isUser ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white rounded-tr-none' : 'text-gray-800 roundedtl-none bg-gray-800 text-gray-100'}`}>
-                                    {msg.content}
-                                </div>
                                 <div className={`max-w-xs sm:max-w-sm px-4 py-2 rounded-lg ${isUser ? 'bg-violet-600 text-white' : 'bg-gray-800 text-gray-300'}`}>
                                     <p className='whitespace-pre-wrap'>{msg.content}</p>
                                 </div>

@@ -1,28 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { dummyProjects } from "../assets/assets";
 import type { Project } from "../types";
 import ProjectPreview from "../components/ProjectPreview";
+import { projectsApi } from "../lib/api";
 
 
 
 
 const Preview = () => {
 
-  const {projectId} = useParams();
+  const {projectId, versionId} = useParams();
   const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(true);
 
     const fetchCode = async () => {
-      // Fetch the generated code for the project from the API
-      setTimeout(() => {
-        const code = dummyProjects.find(project => project.id === projectId)?.current_code || '';
-        if (code){
-          setCode(code);
-          setLoading(false);
-        }
-      }, 2000);
+      if (!projectId) return;
+      const { project } = await projectsApi.get(projectId);
+      const versionCode = versionId ? project.versions.find((version) => version.id === versionId)?.code : undefined;
+      setCode(versionCode ?? project.current_code ?? '');
     }
       useEffect(() => {
         fetchCode();
