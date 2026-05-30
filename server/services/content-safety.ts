@@ -1,6 +1,6 @@
 import { HttpError } from '../utils/http-error.js';
 
-const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'applet', 'base', 'form', 'input', 'button', 'textarea', 'select', 'link', 'meta'];
+const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'applet', 'base', 'form', 'input', 'button', 'textarea', 'select', 'link'];
 const dangerousUrlPattern = /(?:javascript|data|vbscript|file):/i;
 const eventHandlerPattern = /\son[a-z]+\s*=/i;
 const dangerousCssPattern = /expression\s*\(|@import|url\s*\(\s*(['"]?)\s*(?:javascript|data|vbscript|file):/i;
