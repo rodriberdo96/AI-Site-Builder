@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { dummyProjects } from "../assets/assets";
 import { Loader2Icon } from "lucide-react";
 import ProjectPreview from "../components/ProjectPreview";
 import type { Project } from "../types";
+import { publicApi } from "../lib/api";
 
 
 const View = () => {
@@ -14,14 +14,10 @@ const View = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchCode = async () => {
-    // Fetch the generated code for the project from the API
-    const code = dummyProjects.find(project => project.id === projectId)?.current_code || '';
-    setTimeout(() => {
-      if (code){
-        setCode(code);
-        setLoading(false);
-      }
-    }, 2000);
+    if (!projectId) return;
+    const { project } = await publicApi.get(projectId);
+    setCode(project.current_code || '');
+    setLoading(false);
   }
     useEffect(() => {
       fetchCode();

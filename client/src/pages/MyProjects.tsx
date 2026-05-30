@@ -2,8 +2,9 @@ import React from 'react'
 import type { Project } from '../types';
 import { Loader2Icon, PlusIcon, TrashIcon } from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
-import { dummyProjects } from '../assets/assets';
 import Footer from '../components/Footer';
+import { projectsApi } from '../lib/api';
+import { toast } from 'sonner';
 
 
 const MyProjects = () => {
@@ -12,19 +13,25 @@ const MyProjects = () => {
   const navigate = useNavigate()
 
   const fetchProjects = async () => {
-    setProjects(dummyProjects);
-    //simulate loading
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const { projects } = await projectsApi.list();
+      setProjects(projects);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to load projects');
+    } finally {
       setLoading(false);
-  }, 1000)};
+    }
+  };
 
   const deleteProject = async (projectId: string) => {
-    // Simulate API call delay
-    setLoading(true); 
-    setTimeout(() => {
+    try {
+      await projectsApi.remove(projectId);
       setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId));
-      setLoading(false);
-    }, 500);
+      toast.success('Project deleted');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to delete project');
+    }
   }
 
   React.useEffect(() => {
@@ -54,7 +61,7 @@ const MyProjects = () => {
                 >
                   {/*Desktop-like mini preview*/}
                   <div className='relative w-full h-40 bg-gray-900 overflow-hidden border-b border-gray-800'>
-                    {project.current_code ? ( <iframe srcDoc={project.current_code} sandbox='allow-scripts allow-same-origin' className='absolute top-0 left-0 w-[1200px] h-[800px] origin-top-left pointer-events-none' style={{transform:'scale(0.25)'}}/>): (
+                    {project.current_code ? ( <iframe srcDoc={project.current_code} sandbox='' className='absolute top-0 left-0 w-[1200px] h-[800px] origin-top-left pointer-events-none' style={{transform:'scale(0.25)'}}/>): (
                       <div className='flex items-center justify-center h-full text-gray-500'>
                         <span className='text-gray-400'>No Preview Available</span>
                       </div>)}
