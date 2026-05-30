@@ -27,7 +27,7 @@ const corsOptions: cors.CorsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
-app.set('trust proxy', 1);
+if (env.nodeEnv === 'production') app.set('trust proxy', 1);
 app.use(securityHeaders);
 app.use(cors(corsOptions));
 app.use(createRateLimiter({ windowMs: 60_000, max: 120 }));
