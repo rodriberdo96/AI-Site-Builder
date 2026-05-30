@@ -16,6 +16,7 @@ import {
 } from './project-schemas.js';
 
 export const projectsRouter = Router();
+const PROJECT_CREATION_CREDIT_COST = 5;
 
 projectsRouter.use(requireAuth);
 
@@ -103,12 +104,15 @@ projectsRouter.post(
         data: { current_version_index: version.id },
       });
 
-      const creditCost = 5;
       const updatedUser = await tx.user.updateMany({
-        where: { id: userId, credits: { gte: creditCost } },
-        data: { totalCreation: { increment: 1 }, credits: { decrement: creditCost } },
+        where: { id: userId, credits: { gte: PROJECT_CREATION_CREDIT_COST } },
+        data: { totalCreation: { increment: 1 }, credits: { decrement: PROJECT_CREATION_CREDIT_COST } },
       });
-      if (updatedUser.count !== 1) throw new HttpError(402, 'Insufficient credits', 'INSUFFICIENT_CREDITS');
+      if (updatedUser.count !== 1) {
+        const userExists = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
+        if (!userExists) throw new HttpError(404, 'User not found', 'USER_NOT_FOUND');
+        throw new HttpError(402, 'Insufficient credits', 'INSUFFICIENT_CREDITS');
+      }
 
       return tx.websiteProject.findUniqueOrThrow({
         where: { id: created.id },
