@@ -2,12 +2,15 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "start": "tsx server.ts",
+    "start": "node dist/server.js",
     "server": "nodemon --exec tsx server.ts",
-    "build": "tsc"
+    "dev": "tsx server.ts",
+    "build": "prisma generate && tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +22,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "pg": "^8.17.1"
+    "pg": "^8.17.1",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

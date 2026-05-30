@@ -1,11 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
-import type { Message, Project } from '../types';
-import { Loader2Icon, MessageSquareIcon, SmartphoneIcon, XIcon, LaptopIcon, TabletIcon, Link, SaveIcon, FullscreenIcon, ArrowBigDownDashIcon, EyeOffIcon, EyeIcon, Save } from 'lucide-react';
-import { dummyConversations, dummyProjects, dummyVersion } from '../assets/assets';
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { Project } from '../types';
+import { Loader2Icon, MessageSquareIcon, SmartphoneIcon, XIcon, LaptopIcon, TabletIcon, SaveIcon, FullscreenIcon, ArrowBigDownDashIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ProjectPreview from '../components/ProjectPreview';
 import type { ProjectPreviewRef } from '../components/ProjectPreview';
+import { projectsApi } from '../lib/api';
+import { toast } from 'sonner';
 
 const Projects = () => {
   const {projectId} = useParams()
@@ -22,7 +23,18 @@ const Projects = () => {
   const previewRef= useRef<ProjectPreviewRef>(null);
 
   const saveProject = async () => {
-    // Function to save the current project state to the API
+    const code = previewRef.current?.getCode();
+    if (!project || !code) return;
+    setIsSaving(true);
+    try {
+      const { project: updated } = await projectsApi.update(project.id, { current_code: code });
+      setProject(updated);
+      toast.success('Project saved');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to save project');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const downloadCode = () => {
@@ -42,27 +54,37 @@ const Projects = () => {
     element.click();
   }
 
-  const togglePublish = () => {
-    if (project) {
-      setProject({...project, isPublished: !project.isPublished});
+  const togglePublish = async () => {
+    if (!project) return;
+    try {
+      const { project: updated } = project.isPublished
+        ? await projectsApi.unpublish(project.id)
+        : await projectsApi.publish(project.id);
+      setProject(updated);
+      toast.success(updated.isPublished ? 'Project published' : 'Project unpublished');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to update publishing');
     }
   }
 
-  const fetchProject = async () => {
-    // Fetch project details from API
-    const project= dummyProjects.find(project => project.id === projectId) 
-    setTimeout(() => {
-      if (project){
-        setProject({...project, conversation: dummyConversations as Message[], versions: dummyVersion});
-        setLoading(false);
-        setIsGenerating(project.current_code ? false : true);
-      }
-    }, 2000);
-  }
+  const fetchProject = useCallback(async () => {
+    if (!projectId) return;
+    setLoading(true);
+    try {
+      const { project } = await projectsApi.get(projectId);
+      setProject(project);
+      setIsGenerating(project.generationStatus === 'generating');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to load project');
+      navigate('/projects');
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate, projectId])
 
   useEffect(() => {
-    fetchProject();
-  },[]);
+    void fetchProject();
+  },[fetchProject]);
   if (loading){
     return(
       <>

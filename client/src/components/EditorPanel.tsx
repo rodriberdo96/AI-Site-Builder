@@ -1,22 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react'
 
+export interface SelectedElement {
+    tagName: string;
+    className: string;
+    text: string;
+    styles:{
+        padding: string;
+        margin: string;
+        backgroundColor: string;
+        color: string;
+        fontSize: string;
+    };
+}
+
+export type ElementUpdate = Partial<Pick<SelectedElement, 'text' | 'className'>> & {
+    styles?: Partial<SelectedElement['styles']>;
+};
 
 interface EditorPanelProps {
-    selectedElement: {
-        tagname: string;
-        classname: string;
-        text: string;
-        styles:{
-            padding: string;
-            margin: string;
-            backgroundColor: string;
-            color: string;
-            fontSize: string;
-        };
-    } | null;
-    onUpdate: (updates: any) => void;
+    selectedElement: SelectedElement | null;
+    onUpdate: (updates: ElementUpdate) => void;
     onClose: () => void;
 }
 const EditorPanel = ({selectedElement, onUpdate, onClose}: EditorPanelProps) => {
@@ -31,28 +35,25 @@ const EditorPanel = ({selectedElement, onUpdate, onClose}: EditorPanelProps) => 
         return null;
     }
 
-    const handleChange = (field: string, value: string) => {
+    const handleChange = (field: 'text' | 'className', value: string) => {
         const newValues = {...values, [field]: value};
-        if(field in values.styles){
-            newValues.styles = {...values.styles, [field]: value};
-        }
         setValues(newValues);
-        onUpdate({[ field]: value });
+        onUpdate({[field]: value});
     }
 
-    const handleStyleChange = (styleName: string, value: string) => {
+    const handleStyleChange = (styleName: keyof SelectedElement['styles'], value: string) => {
         const newStyles = {...values.styles, [styleName]: value};
         setValues({...values, styles: newStyles});
         onUpdate({styles: {[styleName]: value}});
-    } 
+    }
 
   return (
-    <div className='absolute top-4 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 
+    <div className='absolute top-4 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50
     animate-fade-in fade-in'>
         <div className='flex justify-between items-center mb-4'>
             <h3 className='font-semibold text-gray-800'>Edit Element</h3>
-            <button onClick={onClose} className='p-1 hover_bg-gray-100 rounded-full'>
-                <X className='w-4 h-4 text-gray-500'/> 
+            <button onClick={onClose} className='p-1 hover:bg-gray-100 rounded-full'>
+                <X className='w-4 h-4 text-gray-500'/>
             </button>
         </div>
         <div className='space-y-4 text-black'>
@@ -66,7 +67,7 @@ const EditorPanel = ({selectedElement, onUpdate, onClose}: EditorPanelProps) => 
                 <label className='block text-xs font-medium text-gray-500 mb-1'>
                     Class Name
                 </label>
-                <input type='text'  value={values.classname || ''} onChange={(e) => handleChange('classname', e.target.value)} className='w-full p-2 text-sm border border-gray-400 focus:ring-2 focus:ring-indigo-500 rounded-md outline-none'/>
+                <input type='text'  value={values.className || ''} onChange={(e) => handleChange('className', e.target.value)} className='w-full p-2 text-sm border border-gray-400 focus:ring-2 focus:ring-indigo-500 rounded-md outline-none'/>
             </div>
             <div className='grid grid-cols-2 gap-3'>
                 <div>
@@ -96,8 +97,8 @@ const EditorPanel = ({selectedElement, onUpdate, onClose}: EditorPanelProps) => 
                         Background
                     </label>
                     <div className='flex items-center gap-2 p-1 border border-gray-400 rounded-md'>
-                        <input type='color'  value={values.styles.backgroundColor === 'rgba (0,0,0,0)' ? '#ffff' : values.styles.backgroundColor} 
-                        onChange={(e) => handleStyleChange('backgroundColor', e.target.value)} 
+                        <input type='color'  value={values.styles.backgroundColor.startsWith('rgb') ? '#ffffff' : values.styles.backgroundColor}
+                        onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
                         className='w-6 h-6 cursor-pointer'/>
                         <span className='text-xs text-gray-600 truncate'>{values.styles.backgroundColor}</span>
                     </div>
@@ -107,8 +108,8 @@ const EditorPanel = ({selectedElement, onUpdate, onClose}: EditorPanelProps) => 
                         Text Color
                     </label>
                     <div className='flex items-center gap-2 p-1 border border-gray-400 rounded-md'>
-                        <input type='color'  value={values.styles.color} 
-                        onChange={(e) => handleStyleChange('color', e.target.value)} 
+                        <input type='color'  value={values.styles.color.startsWith('rgb') ? '#111827' : values.styles.color}
+                        onChange={(e) => handleStyleChange('color', e.target.value)}
                         className='w-6 h-6 cursor-pointer'/>
                         <span className='text-xs text-gray-600 truncate'>{values.styles.color}</span>
                     </div>

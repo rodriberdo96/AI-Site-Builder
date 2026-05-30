@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import type { Project } from '../types';
 import { iframeScript } from '../assets/assets';
 import { useState } from 'react';
 import EditorPanel from './EditorPanel';
-
+import type { ElementUpdate, SelectedElement } from './EditorPanel';
 
 interface ProjectPreviewProps {
     project: Project;
@@ -14,7 +13,6 @@ interface ProjectPreviewProps {
 }
 
 export interface ProjectPreviewRef {
-    // Define any methods or properties you want to expose via the ref here
     getCode: () => string | undefined
 }
 
@@ -22,21 +20,22 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
 
     const iFrameRef= useRef<HTMLIFrameElement>(null);
 
-    const [selectedElement, setSelectedElement] = useState<any>(null);
+    const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
 
-    const handleUpdate = (updates: any) => {
+    const handleUpdate = (updates: ElementUpdate) => {
         if (iFrameRef.current?.contentWindow && selectedElement) {
             iFrameRef.current.contentWindow.postMessage({
                 type: 'UPDATE_ELEMENT',
                 payload: updates,
-            }, '*');
+            }, window.location.origin);
         }
     }; 
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
+            if (event.source !== iFrameRef.current?.contentWindow) return;
             if (event.data.type === 'ELEMENT_SELECTED') {
-                setSelectedElement(event.data.payload);
+                setSelectedElement(event.data.payload as SelectedElement);
             } else if (event.data.type === 'CLEAR_SELECTION') {
                 setSelectedElement(null);
             }
@@ -67,20 +66,16 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
                 const doc= iFrameRef.current?.contentDocument;
                 if (!doc) return undefined;
 
-                /* Remove our selection class / attributes/ outline from all elements */
                 doc.querySelectorAll('.ai-selected-element,[data-ai-selected]').forEach((el) => {
                     el.classList.remove('ai-selected-element');
                     el.removeAttribute('data-ai-selected');
                     (el as HTMLElement).style.outline = '';
                 })       
-                /*Remove injected style + script from document */    
                 const previewStyle = doc.getElementById('ai-preview-style');
                 if (previewStyle) { previewStyle.remove(); }
                 const previewScript = doc.getElementById('ai-preview-script');
                 if (previewScript) { previewScript.remove(); }
-                /*Serialize the cleaned document back to HTML */
-                const html = doc.documentElement.outerHTML;
-                return html;
+                return doc.documentElement.outerHTML;
             }
         }));
         
@@ -96,18 +91,18 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(({proj
                         max-sm:w-full h-full border-0
                         ${resolutions[device]} mx-auto transition-all
                     `}
-                    sandbox="allow-scripts allow-same-origin allow-forms"
+                    sandbox={showEditorPanel ? 'allow-scripts allow-same-origin' : ''}
                 />
                 {showEditorPanel && selectedElement && (
                     <EditorPanel selectedElement={selectedElement} 
                     onUpdate={handleUpdate} 
                     onClose={() => {setSelectedElement (null)
                         if (iFrameRef.current?.contentWindow) {
-                            iFrameRef.current.contentWindow.postMessage({type: 'CLEAR_SELECTION_REQUEST'}, '*');
+                            iFrameRef.current.contentWindow.postMessage({type: 'CLEAR_SELECTION_REQUEST'}, window.location.origin);
                     }}} />
                 )}
             </>
-        ) : isGenerating ? ( <div>loading</div> ) : (<div>No code generated yet.</div> )}
+        ) : isGenerating ? ( <div className='flex h-full items-center justify-center text-gray-300'>Generating preview…</div> ) : (<div className='flex h-full items-center justify-center text-gray-300'>No code generated yet.</div> )}
     </div>
     )
 })

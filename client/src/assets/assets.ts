@@ -194,7 +194,7 @@ export const iframeScript = `
 
             // Don't select body or html
             if (!target || target.tagName === 'BODY' || target.tagName === 'HTML') {
-                window.parent.postMessage({ type: 'CLEAR_SELECTION' }, '*');
+                window.parent.postMessage({ type: 'CLEAR_SELECTION' }, window.location.origin);
                 return;
             }
 
@@ -218,14 +218,14 @@ export const iframeScript = `
                     fontSize: computedStyle.fontSize
                 }
                 }
-            }, '*');
+            }, window.location.origin);
             });
 
             window.addEventListener('message', function (event) {
             if (event.data.type === 'UPDATE_ELEMENT' && selectedElement) {
                 const updates = event.data.payload;
 
-                if (updates.className !== undefined) {
+                if (updates.className !== undefined && /^[A-Za-z0-9_: -]*$/.test(updates.className)) {
                 selectedElement.className = updates.className;
                 }
 
@@ -234,7 +234,11 @@ export const iframeScript = `
                 }
 
                 if (updates.styles) {
-                Object.assign(selectedElement.style, updates.styles);
+                ['padding','margin','backgroundColor','color','fontSize'].forEach(function (key) {
+                    if (Object.prototype.hasOwnProperty.call(updates.styles, key)) {
+                    selectedElement.style[key] = String(updates.styles[key]).replace(/expression\\s*\\(|javascript:|data:|vbscript:/ig, '');
+                    }
+                });
                 }
             } else if (event.data.type === 'CLEAR_SELECTION_REQUEST') {
                 clearSelected();
