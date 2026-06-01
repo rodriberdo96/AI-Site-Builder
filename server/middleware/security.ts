@@ -11,9 +11,9 @@ export const securityHeaders: RequestHandler = (_req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
-  res.setHeader(
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     'Content-Security-Policy',
     "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'",
   );
@@ -25,7 +25,8 @@ const buckets = new Map<string, RateLimitBucket>();
 export const createRateLimiter = (options: { windowMs: number; max: number }): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     const now = Date.now();
-    const key = `${req.ip ?? 'unknown'}`;
+    const pathKey = req.path.split('/').filter(Boolean).slice(0, 2).join('/');
+    const key = `${req.ip ?? 'unknown'}:${req.method}:${pathKey}`;
     const current = buckets.get(key);
 
     if (!current || current.resetAt <= now) {
