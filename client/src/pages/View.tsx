@@ -14,10 +14,20 @@ const View = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchCode = async () => {
-    if (!projectId) return;
-    const { project } = await publicApi.get(projectId);
-    setCode(project.current_code || '');
-    setLoading(false);
+    if (!projectId) {
+      setCode('');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { project } = await publicApi.get(projectId);
+      setCode(project.current_code || '');
+    } catch {
+      setCode('');
+    } finally {
+      setLoading(false);
+    }
   }
     useEffect(() => {
       fetchCode();
