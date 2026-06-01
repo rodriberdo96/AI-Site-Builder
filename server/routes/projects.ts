@@ -176,6 +176,7 @@ projectsRouter.post(
       await tx.websiteProject.update({ where: { id: (req.params as { projectId: string }).projectId }, data: { generationStatus: 'generating' } });
       await tx.conversation.create({ data: { projectId: (req.params as { projectId: string }).projectId, role: 'user', content: prompt } });
       await tx.conversation.create({ data: { projectId: (req.params as { projectId: string }).projectId, role: 'assistant', content: 'Applied your requested update safely.' } });
+      await tx.user.update({ where: { id: req.user!.id }, data: { credits: { decrement: 5 } } });
       const version = await tx.version.create({ data: { projectId: (req.params as { projectId: string }).projectId, code, description: prompt.slice(0, 200) } });
       await tx.websiteProject.update({
         where: { id: (req.params as { projectId: string }).projectId },
