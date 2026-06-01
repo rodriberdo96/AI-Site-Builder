@@ -25,7 +25,8 @@ const buckets = new Map<string, RateLimitBucket>();
 export const createRateLimiter = (options: { windowMs: number; max: number }): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     const now = Date.now();
-    const key = `${req.ip ?? 'unknown'}:${req.path}`;
+    const pathKey = req.path.split('/').filter(Boolean).slice(0, 2).join('/');
+    const key = `${req.ip ?? 'unknown'}:${req.method}:${pathKey}`;
     const current = buckets.get(key);
 
     if (!current || current.resetAt <= now) {
