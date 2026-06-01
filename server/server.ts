@@ -20,7 +20,7 @@ const corsOptions: cors.CorsOptions = {
             callback(null, true);
             return;
         }
-        callback(new Error('Origin is not allowed by CORS'));
+        callback(null, false);
     },
     credentials : true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
