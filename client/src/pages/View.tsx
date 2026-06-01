@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 import ProjectPreview from "../components/ProjectPreview";
 import type { Project } from "../types";
 import { publicApi } from "../lib/api";
@@ -15,6 +16,7 @@ const View = () => {
 
   const fetchCode = async () => {
     if (!projectId) {
+      toast.error("Project ID not found");
       setCode('');
       setLoading(false);
       return;
@@ -24,6 +26,7 @@ const View = () => {
       const { project } = await publicApi.get(projectId);
       setCode(project.current_code || '');
     } catch {
+      toast.error("Failed to load project");
       setCode('');
     } finally {
       setLoading(false);
