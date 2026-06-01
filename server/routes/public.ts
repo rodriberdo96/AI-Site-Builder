@@ -38,7 +38,7 @@ publicRouter.get(
   asyncHandler(async (_req, res) => {
     const projects = await prisma.websiteProject.findMany({
       where: { isPublished: true, archived: false },
-      select: { id: true, name: true, initial_prompt: true, current_code: true, createdAt: true, updatedAt: true, user: { select: { id: true, name: true } } },
+      select: { id: true, name: true, initial_prompt: true, createdAt: true, updatedAt: true, user: { select: { id: true, name: true } } },
       orderBy: { updatedAt: 'desc' },
       take: 50,
     });
