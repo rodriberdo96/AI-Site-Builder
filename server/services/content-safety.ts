@@ -1,10 +1,25 @@
 import { HttpError } from '../utils/http-error.js';
 
-const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'applet', 'base', 'form', 'input', 'button', 'textarea', 'select', 'link', 'meta'];
+const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'applet', 'base', 'form', 'input', 'button', 'textarea', 'select', 'link'];
 const dangerousUrlPattern = /(?:javascript|data|vbscript|file):/i;
 const eventHandlerPattern = /\son[a-z]+\s*=/i;
 const dangerousCssPattern = /expression\s*\(|@import|url\s*\(\s*(['"]?)\s*(?:javascript|data|vbscript|file):/i;
 const serverCodePattern = /\b(?:require\s*\(|import\s+.*\s+from\s+['"](?:fs|child_process|net|tls|http|https|os|path|process)|process\.|eval\s*\(|Function\s*\(|fetch\s*\(\s*['"]https?:\/\/169\.254\.169\.254)/i;
+const namedEntityMap: Record<string, string> = { colon: ':', newline: '\n', tab: '\t' };
+const decodeCodePoint = (value: number): string => (
+  Number.isInteger(value)
+  && value >= 0
+  && value <= 0x10ffff
+  && !(value >= 0xd800 && value <= 0xdfff)
+    ? String.fromCodePoint(value)
+    : ''
+);
+
+const normalizeForUrlChecks = (value: string): string => value
+  .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) => decodeCodePoint(Number.parseInt(hex, 16)))
+  .replace(/&#(\d+);?/g, (_, decimal: string) => decodeCodePoint(Number.parseInt(decimal, 10)))
+  .replace(/&([a-z]+);/gi, (match, entity: string) => namedEntityMap[entity.toLowerCase()] ?? match)
+  .replace(/[\u0000-\u0020\u007f]+/g, '');
 
 export const sanitizeHtml = (html: string): string => {
   let sanitized = html;
@@ -29,12 +44,20 @@ export const assertSafeGeneratedCode = (html: string): string => {
   }
 
   const lowerHtml = html.toLowerCase();
+  const normalizedHtml = normalizeForUrlChecks(html);
   const foundTag = forbiddenTags.find((tag) => new RegExp(`<${tag}\\b`, 'i').test(lowerHtml));
   if (foundTag) {
     throw new HttpError(400, `Generated website contains blocked <${foundTag}> content`, 'UNSAFE_GENERATED_CODE');
   }
 
-  if (eventHandlerPattern.test(html) || dangerousUrlPattern.test(html) || dangerousCssPattern.test(html) || serverCodePattern.test(html)) {
+  if (
+    eventHandlerPattern.test(html)
+    || dangerousUrlPattern.test(html)
+    || dangerousCssPattern.test(html)
+    || serverCodePattern.test(html)
+    || dangerousUrlPattern.test(normalizedHtml)
+    || dangerousCssPattern.test(normalizedHtml)
+  ) {
     throw new HttpError(400, 'Generated website contains unsafe executable content', 'UNSAFE_GENERATED_CODE');
   }
 

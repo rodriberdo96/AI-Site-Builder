@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2Icon } from 'lucide-react';
 import { useSession } from '../lib/auth-client';
 
-const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const location = useLocation();
   const { data: session, isPending } = useSession();
 

@@ -20,14 +20,14 @@ const corsOptions: cors.CorsOptions = {
             callback(null, true);
             return;
         }
-        callback(new Error('Origin is not allowed by CORS'));
+        callback(null, false);
     },
     credentials : true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }
 
-app.set('trust proxy', 1);
+if (env.nodeEnv === 'production') app.set('trust proxy', 1);
 app.use(securityHeaders);
 app.use(cors(corsOptions));
 app.use(createRateLimiter({ windowMs: 60_000, max: 120 }));

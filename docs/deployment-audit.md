@@ -35,9 +35,3 @@
 ### Security hardening status
 - The previous increment added manual security headers, CORS hardening, request limits, central errors, Zod validation, ownership checks, and generated-content safety.
 - Adding the `helmet` package was attempted, but this environment's npm registry policy returned HTTP 403 for `helmet`. To keep verification passing, this increment retains the existing manual security headers rather than adding an un-installable dependency.
-
-## Follow-up fixes for hosted deployments
-- Added root-level `netlify.toml` so Netlify can deploy the monorepo without manually setting the client base directory.
-- Added root-level `render.yaml` so Render can build from `server`, include dev dependencies during build, run Prisma migrations before deploy, and start the compiled server.
-- Added Node engine constraints to both apps so Render and Netlify use a Prisma/Vite-compatible Node runtime.
-- Hardened backend `PORT` parsing so an invalid runtime port fails with a clear configuration error instead of binding to `NaN`.

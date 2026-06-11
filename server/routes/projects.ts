@@ -16,6 +16,7 @@ import {
 } from './project-schemas.js';
 
 export const projectsRouter = Router();
+const PROJECT_CREATION_CREDIT_COST = 5;
 
 projectsRouter.use(requireAuth);
 
@@ -103,10 +104,15 @@ projectsRouter.post(
         data: { current_version_index: version.id },
       });
 
-      await tx.user.update({
-        where: { id: userId },
-        data: { totalCreation: { increment: 1 }, credits: { decrement: 1 } },
+      const updatedUser = await tx.user.updateMany({
+        where: { id: userId, credits: { gte: PROJECT_CREATION_CREDIT_COST } },
+        data: { totalCreation: { increment: 1 }, credits: { decrement: PROJECT_CREATION_CREDIT_COST } },
       });
+      if (updatedUser.count !== 1) {
+        const userExists = await tx.user.findUnique({ where: { id: userId }, select: { id: true } });
+        if (!userExists) throw new HttpError(404, 'User not found', 'USER_NOT_FOUND');
+        throw new HttpError(402, 'Insufficient credits', 'INSUFFICIENT_CREDITS');
+      }
 
       return tx.websiteProject.findUniqueOrThrow({
         where: { id: created.id },
@@ -170,6 +176,7 @@ projectsRouter.post(
       await tx.websiteProject.update({ where: { id: (req.params as { projectId: string }).projectId }, data: { generationStatus: 'generating' } });
       await tx.conversation.create({ data: { projectId: (req.params as { projectId: string }).projectId, role: 'user', content: prompt } });
       await tx.conversation.create({ data: { projectId: (req.params as { projectId: string }).projectId, role: 'assistant', content: 'Applied your requested update safely.' } });
+      await tx.user.update({ where: { id: req.user!.id }, data: { credits: { decrement: 5 } } });
       const version = await tx.version.create({ data: { projectId: (req.params as { projectId: string }).projectId, code, description: prompt.slice(0, 200) } });
       await tx.websiteProject.update({
         where: { id: (req.params as { projectId: string }).projectId },
