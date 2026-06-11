@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ai-site-builder-api
+    env: node
+    rootDir: server
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    preDeployCommand: npm run prisma:migrate:deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: TRUSTED_ORIGINS
+        sync: false

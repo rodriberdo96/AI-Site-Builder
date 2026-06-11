@@ -9,6 +9,7 @@ import View from './pages/View'
 import Navbar from './components/Navbar'
 import { Toaster } from "sonner"
 import AuthPage from './pages/auth/AuthPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 
 const App = () => {
@@ -26,10 +27,10 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home/>} />
         <Route path="/pricing" element={<Pricing/>} />
-        <Route path="/projects/:projectId" element={<Projects/>} />
-        <Route path="/projects" element={<MyProjects/>} />
-        <Route path="/preview/:projectId" element={<Preview/>} />
-        <Route path="/preview/:projectId/:versionId" element={<Preview/>} />
+        <Route path="/projects/:projectId" element={<ProtectedRoute><Projects/></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><MyProjects/></ProtectedRoute>} />
+        <Route path="/preview/:projectId" element={<ProtectedRoute><Preview/></ProtectedRoute>} />
+        <Route path="/preview/:projectId/:versionId" element={<ProtectedRoute><Preview/></ProtectedRoute>} />
         <Route path="/community" element={<Community/>} />
         <Route path="/view/:projectId" element={<View/>} />
         <Route path="/auth/:pathname" element={<AuthPage />} />

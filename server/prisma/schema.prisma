@@ -40,14 +40,19 @@ model WebsiteProject {
   current_version_index String  @default("")
   userId                String
   isPublished           Boolean @default(false)
+  archived              Boolean @default(false)
+  generationStatus      String  @default("idle")
 
   // Relations
   conversation Conversation[]
   versions     Version[]
-  user         User           @relation(fields: [userId], references: [id])
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId, updatedAt])
+  @@index([isPublished, archived])
 }
 
 enum Role {
@@ -64,6 +69,8 @@ model Conversation {
 
   // Relations
   project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, timestamp])
 }
 
 model Version {
@@ -75,6 +82,8 @@ model Version {
 
   // Relations
   project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, timestamp])
 }
 
 model Transaction {

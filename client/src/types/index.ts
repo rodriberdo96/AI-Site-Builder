@@ -18,6 +18,8 @@ export interface Version {
     id: string;
     timestamp: string;
     code: string;
+    description?: string;
+    projectId?: string;
 }
 
 export interface Project {
@@ -30,6 +32,8 @@ export interface Project {
     userId: string;
     user?: User;
     isPublished?: boolean;
+    archived?: boolean;
+    generationStatus?: string;
     versionId?: string;
     conversation: Message[];
     versions: Version[];
