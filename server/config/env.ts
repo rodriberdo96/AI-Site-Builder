@@ -15,6 +15,7 @@ export const env = {
   betterAuthSecret: getRequiredEnv('BETTER_AUTH_SECRET'),
   trustedOrigins: parseOrigins(process.env.TRUSTED_ORIGINS),
   nodeEnv: process.env.NODE_ENV ?? 'development',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
   port: (() => {
     const port = Number(process.env.PORT ?? 3000);
     if (!Number.isInteger(port) || port <= 0 || port > 65535) {

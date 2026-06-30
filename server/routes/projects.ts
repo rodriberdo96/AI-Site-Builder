@@ -4,6 +4,7 @@ import { asyncHandler } from '../middleware/async-handler.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { assertSafeGeneratedCode, createSafeStaticWebsite } from '../services/content-safety.js';
+import { generateWithAI } from '../services/ai.js';
 import { HttpError } from '../utils/http-error.js';
 import {
   archiveSchema,
@@ -72,7 +73,7 @@ projectsRouter.post(
   asyncHandler(async (req, res) => {
     const userId = req.user!.id;
     const { name, prompt } = req.body as { name: string; prompt: string };
-    const code = createSafeStaticWebsite(prompt);
+    const code = await generateWithAI(prompt);
 
     const project = await prisma.$transaction(async (tx) => {
       const created = await tx.websiteProject.create({
@@ -170,7 +171,7 @@ projectsRouter.post(
   asyncHandler(async (req, res) => {
     await getOwnedProjectOrThrow((req.params as { projectId: string }).projectId, req.user!.id);
     const { prompt } = req.body as { prompt: string };
-    const code = createSafeStaticWebsite(prompt);
+    const code = await generateWithAI(prompt);
 
     const project = await prisma.$transaction(async (tx) => {
       await tx.websiteProject.update({ where: { id: (req.params as { projectId: string }).projectId }, data: { generationStatus: 'generating' } });
