@@ -6,6 +6,14 @@ export const assets = {
 
 export const appPlans = [
         {
+            id: 'free',
+            name: 'Free Trial',
+            price: '$0',
+            credits: 20,
+            description: 'Start creating for free, no credit card required.',
+            features: ['20 Free Credits (on Signup)', '4 Website Projects', 'Basic AI Models', 'Community support',],
+        },
+        {
             id: 'basic',
             name: 'Basic',
             price: '$5',
