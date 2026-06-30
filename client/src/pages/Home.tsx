@@ -1,6 +1,6 @@
 import React from 'react'
 import { Loader2Icon } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { projectsApi } from '../lib/api'
 
@@ -29,13 +29,13 @@ const Home = () => {
   return (
       <section className="flex flex-col items-center text-white text-sm pb-20 px-4 font-poppins">
           {/* BACKGROUND IMAGE */}
-        <a href="https://prebuiltui.com" className="flex items-center gap-2 border border-slate-700 rounded-full p-1 pr-3 text-sm mt-20">
+        <Link to="/pricing" className="flex items-center gap-2 border border-slate-700 rounded-full p-1 pr-3 text-sm mt-20">
           <span className="bg-indigo-600 text-xs px-3 py-1 rounded-full">NEW</span>
           <p className="flex items-center gap-2">
             <span>Try 30 days free trial option</span>
             <svg className="mt-px" width="6" height="9" viewBox="0 0 6 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m1 1 4 3.5L1 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </p>
-        </a>
+        </Link>
 
         <h1 className="text-center text-[40px] leading-[48px] md:text-6xl md:leading-[70px] mt-4 font-semibold max-w-3xl">
           Turn thoughts into slides websites, with AI.
